@@ -1,0 +1,95 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6fb;
+  }
+  
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    margin-top: 15px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    transition: 0.2s;
+  }
+  
+  .card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .city {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .vagas {
+    margin: 10px 0;
+    font-weight: bold;
+  }
+  
+  .buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .btn {
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .plus {
+    background: #22c55e;
+  }
+  
+  .minus {
+    background: #ef4444;
+  }
+  
+  .disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .lotado {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .top-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .logout {
+    background: #111;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .add {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }

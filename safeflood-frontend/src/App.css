@@ -36,3 +36,18 @@
     transform: rotate(360deg);
   }
 }
+
+.forgot-password {
+  margin-top: 10px;
+  text-align: right;
+}
+
+.forgot-password a {
+  font-size: 12px;
+  color: #64748b;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
+  color: #0ea5e9;
+}

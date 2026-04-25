@@ -26,6 +26,14 @@ function Login({ setIsAuthenticated }) {
     <div>
       <h2>Login</h2>
 
+      <button type="submit" className="btn-login">
+        Entrar
+      </button>
+
+      <p className="forgot-password">
+        <a href="/forgot-password">Esqueci minha senha</a>
+      </p>
+
       <form onSubmit={handleLogin}>
         <input
           type="email"

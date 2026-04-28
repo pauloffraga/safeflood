@@ -1,46 +1,75 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import '../styles/Dashboard.css';
-import '../styles/global.css';
 
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import StatCard from '../components/StatCard';
+import WaterChart from "../components/WaterChart";
 
 import api from '../services/api';
 
 export default function Dashboard() {
 
-  const [waterLevel, setWaterLevel] = useState(null);
+  const [waterLevel, setWaterLevel] = useState(0);
   const [alerts, setAlerts] = useState([]);
   const [regions, setRegions] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [history, setHistory] = useState([]);
 
-  // 🔥 BUSCAR DADOS DO BACKEND
-  useEffect(() => {
+  // 🔥 Protegido contra undefined/null
+  const getAlertLevel = (msg = "") => {
+    const text = msg.toLowerCase();
 
-    async function loadData() {
-      try {
+    if (text.includes("crítico") || text.includes("critico")) return "danger";
+    if (text.includes("atenção") || text.includes("atencao")) return "warning";
+    return "normal";
+  };
 
-        const waterRes = await api.get("/water-level");
-        const alertsRes = await api.get("/alerts");
-        const regionsRes = await api.get("/regions");
+  // 🔥 useCallback evita recriação da função
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
 
-        setWaterLevel(waterRes.data.level);
-        setAlerts(alertsRes.data);
-        setRegions(regionsRes.data.count);
+      const [waterRes, alertsRes, regionsRes, historyRes] = await Promise.all([
+        api.get("/water-level"),
+        api.get("/alerts"),
+        api.get("/regions"),
+        api.get("/water-history"),
+      ]);
 
-      } catch (error) {
-        console.error("Erro ao buscar dados:", error);
-      }
+      setWaterLevel(waterRes?.data?.level ?? 0);
+      setAlerts(alertsRes?.data ?? []);
+      setRegions(regionsRes?.data?.count ?? 0);
+      setHistory(historyRes?.data ?? []);
+      setError("");
+
+    } catch (err) {
+      console.error(err);
+      setError("Erro ao carregar dados");
+    } finally {
+      setLoading(false);
     }
-
-    loadData();
-
-    // 🔁 atualiza a cada 10s (tempo real fake)
-    const interval = setInterval(loadData, 10000);
-
-    return () => clearInterval(interval);
-
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const safeLoad = async () => {
+      if (!isMounted) return;
+      await loadData();
+    };
+
+    safeLoad();
+
+    const interval = setInterval(safeLoad, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+
+  }, [loadData]);
 
   return (
     <div className="layout">
@@ -51,47 +80,70 @@ export default function Dashboard() {
 
         <Topbar />
 
-        {/* KPIs */}
+        {/* ERRO */}
+        {error && (
+          <div className="error-box">
+            {error}
+          </div>
+        )}
+
+        {/* CARDS */}
         <div className="cards">
 
           <StatCard 
-            icon="🌊"
             label="Nível da Água"
-            value={waterLevel ? `${waterLevel}m` : "Carregando..."}
+            value={loading ? "..." : `${waterLevel}m`}
             color="#0ea5e9"
           />
 
           <StatCard 
-            icon="⚠️"
             label="Alertas Ativos"
-            value={alerts.length}
+            value={loading ? "..." : alerts.length}
             color="#ef4444"
           />
 
           <StatCard 
-            icon="📍"
             label="Regiões Monitoradas"
-            value={regions}
+            value={loading ? "..." : regions}
             color="#22c55e"
           />
 
         </div>
 
-        {/* Conteúdo */}
+        {/* CONTEÚDO */}
         <div className="content">
 
+          {/* GRÁFICO */}
           <div className="card">
-            📊 Aqui depois entra seu gráfico de histórico
+            <h3>📊 Nível da água</h3>
+
+            {loading ? (
+              <p>Carregando gráfico...</p>
+            ) : history.length === 0 ? (
+              <p>Sem dados disponíveis</p>
+            ) : (
+              <WaterChart data={history} />
+            )}
+
           </div>
 
+          {/* ALERTAS */}
           <div className="card">
-            <h3>⚠️ Alertas recentes</h3>
 
-            {alerts.length === 0 ? (
-              <p>Nenhum alerta no momento</p>
+            <h3>🚨 Alertas recentes</h3>
+
+            {loading ? (
+              <p>Carregando...</p>
+            ) : alerts.length === 0 ? (
+              <p className="safe">Nenhum alerta no momento</p>
             ) : (
               alerts.map((a, i) => (
-                <p key={i}>• {a.message}</p>
+                <div 
+                  key={i} 
+                  className={`alert-item ${getAlertLevel(a.message)}`}
+                >
+                  ⚠️ {a.message || "Alerta sem descrição"}
+                </div>
               ))
             )}
 

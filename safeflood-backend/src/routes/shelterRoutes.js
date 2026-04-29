@@ -1,19 +1,28 @@
-import express from 'express';
-import { getShelters, createShelter } from '../controllers/shelterController.js';
-import { updateShelter } from '../controllers/shelterController.js';
-import { validateShelterUpdate } from '../middlewares/validateShelter.js';
-import { deleteShelter } from '../controllers/shelterController.js';
-import { updateAvailability } from '../controllers/shelterController.js';
-import { authMiddleware } from '../middlewares/authMiddleware.js';
-import { updateVagas } from '../controllers/shelterController.js';
+import express from "express";
+import pool from "../config/db.js";
 
 const router = express.Router();
 
-router.get('/', getShelters);
-router.post('/', authMiddleware, createShelter);
-router.put('/:id', authMiddleware, validateShelterUpdate, updateShelter);
-router.delete('/:id', authMiddleware, deleteShelter);
-router.patch('/:id/availability', authMiddleware, updateAvailability);
-router.patch('/:id/vagas', updateVagas);
+// 🔥 ROTA PARA CRIAR ABRIGO
+router.post("/", async (req, res) => {
+  const { name, city, address, capacity } = req.body;
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO shelters (name, city, address, capacity)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [name, city, address, capacity]
+    );
+
+    res.status(201).json(result.rows[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Erro ao criar abrigo"
+    });
+  }
+});
 
 export default router;

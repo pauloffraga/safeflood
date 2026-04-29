@@ -4,34 +4,35 @@ import {
   Line,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer
 } from "recharts";
 
 export default function WaterChart({ data }) {
-
   return (
-    <div style={{ width: "100%", height: 250 }}>
-
+    <div style={{ width: "100%", height: 280 }}>
       <ResponsiveContainer>
-        <LineChart data={data}>
+        <LineChart data={data || []}>
+          
+          <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
 
-          <XAxis dataKey="time" stroke="#94a3b8" />
-          <YAxis stroke="#94a3b8" />
+          <XAxis dataKey="time" />
+
+          <YAxis />
 
           <Tooltip />
 
           <Line
             type="monotone"
             dataKey="level"
-            stroke="#38bdf8"
-            strokeWidth={3}
+            stroke="#0ea5e9"
+            strokeWidth={2}
             dot={false}
           />
 
         </LineChart>
       </ResponsiveContainer>
-
     </div>
   );
 }

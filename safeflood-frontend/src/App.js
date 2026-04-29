@@ -15,6 +15,7 @@ function App() {
         <Route path="/create" element={<PrivateRoute><CreateShelter /></PrivateRoute>} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/shelters/create" element={<CreateShelter />} />
       </Routes>
     </BrowserRouter>
   );

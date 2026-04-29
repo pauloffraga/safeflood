@@ -36,15 +36,10 @@ export default function Login() {
         return;
       }
 
-      // 🔐 salvar token
       localStorage.setItem("token", data.token);
-
-      // opcional: salvar usuário
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // redirecionar
       navigate("/dashboard");
-
     } catch {
       setMessage("Erro ao conectar com o servidor");
     }
@@ -54,15 +49,23 @@ export default function Login() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
 
+      {/* LADO ESQUERDO (branding) */}
+      <div style={styles.left}>
         <h1 style={styles.logo}>🌊 SafeFlood</h1>
+        <p style={styles.subtitle}>
+          Monitoramento inteligente de enchentes em tempo real
+        </p>
+      </div>
+
+      {/* LADO DIREITO (login) */}
+      <div style={styles.card}>
         <h2 style={styles.title}>Entrar</h2>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin} style={{ width: "100%" }}>
           <input
             type="email"
-            placeholder="Seu email"
+            placeholder="seu email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={styles.input}
@@ -75,7 +78,7 @@ export default function Login() {
               placeholder="Sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ ...styles.input, marginBottom: 0 }}
+              style={styles.input}
               required
             />
 
@@ -83,7 +86,7 @@ export default function Login() {
               style={styles.eye}
               onClick={() => setShow(!show)}
             >
-              {show ? "" : ""}
+              {show ? "🙈" : "👁️"}
             </span>
           </div>
 
@@ -94,7 +97,7 @@ export default function Login() {
 
         <div style={styles.links}>
           <span onClick={() => navigate("/forgot-password")}>
-            Esqueci minha senha
+            Ajuda com minha senha
           </span>
         </div>
 
@@ -106,64 +109,90 @@ export default function Login() {
 
 const styles = {
   container: {
-    height: "100vh",
     display: "flex",
+    height: "100vh",
+    fontFamily: "sans-serif",
+  },
+
+  left: {
+    flex: 1,
+    background: "linear-gradient(135deg, #0ea5e9, #1e3a8a)",
+    color: "#fff",
+    display: "flex",
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    background: "linear-gradient(135deg, #0f172a, #1e3a8a)",
-  },
-  card: {
-    background: "rgba(255,255,255,0.1)",
-    backdropFilter: "blur(15px)",
     padding: "40px",
-    borderRadius: "16px",
-    width: "350px",
-    color: "#fff",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
-    textAlign: "center",
   },
+
   logo: {
+    fontSize: "40px",
     marginBottom: "10px",
   },
-  title: {
-    marginBottom: "20px",
+
+  subtitle: {
+    fontSize: "16px",
+    opacity: 0.8,
   },
+
+  card: {
+    width: "400px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    padding: "40px",
+    background: "#0f172a",
+    color: "#fff",
+  },
+
+  title: {
+    marginBottom: "25px",
+  },
+
   input: {
     width: "100%",
     padding: "12px",
     marginBottom: "15px",
     borderRadius: "8px",
-    border: "none",
+    border: "1px solid #334155",
+    background: "#020617",
+    color: "#fff",
     outline: "none",
   },
+
   passwordBox: {
     position: "relative",
-    marginBottom: "15px",
   },
+
   eye: {
     position: "absolute",
-    right: "10px",
-    top: "10px",
+    right: "12px",
+    top: "12px",
     cursor: "pointer",
   },
+
   button: {
     width: "100%",
     padding: "12px",
-    background: "#38bdf8",
+    background: "#0ea5e9",
     border: "none",
     borderRadius: "8px",
-    color: "#000",
+    color: "#fff",
     fontWeight: "bold",
     cursor: "pointer",
+    transition: "0.2s",
   },
+
   links: {
     marginTop: "15px",
     fontSize: "14px",
-    cursor: "pointer",
     color: "#38bdf8",
+    cursor: "pointer",
   },
+
   message: {
     marginTop: "15px",
     fontSize: "14px",
+    color: "#f87171",
   },
 };

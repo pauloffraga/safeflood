@@ -1,75 +1,62 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import '../styles/Dashboard.css';
+import React, { useEffect, useState } from "react";
+import "../styles/Dashboard.css";
 
-import Sidebar from '../components/Sidebar';
-import Topbar from '../components/Topbar';
-import StatCard from '../components/StatCard';
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
+import StatCard from "../components/StatCard";
 import WaterChart from "../components/WaterChart";
+import CreateShelterModal from "../components/CreateShelterModal";
 
-import api from '../services/api';
+import api from "../services/api";
 
 export default function Dashboard() {
 
-  const [waterLevel, setWaterLevel] = useState(0);
-  const [alerts, setAlerts] = useState([]);
-  const [regions, setRegions] = useState(0);
+  const [data, setData] = useState({
+    waterLevel: 0,
+    alerts: [],
+    regions: 0,
+    history: []
+  });
+
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [history, setHistory] = useState([]);
 
-  // 🔥 Protegido contra undefined/null
-  const getAlertLevel = (msg = "") => {
-    const text = msg.toLowerCase();
-
-    if (text.includes("crítico") || text.includes("critico")) return "danger";
-    if (text.includes("atenção") || text.includes("atencao")) return "warning";
-    return "normal";
-  };
-
-  // 🔥 useCallback evita recriação da função
-  const loadData = useCallback(async () => {
+  // 🔥 FUNÇÃO CENTRAL (AGORA CORRETA)
+  const loadData = async () => {
     try {
       setLoading(true);
 
-      const [waterRes, alertsRes, regionsRes, historyRes] = await Promise.all([
+      const [water, alerts, regions, history] = await Promise.all([
         api.get("/water-level"),
         api.get("/alerts"),
         api.get("/regions"),
-        api.get("/water-history"),
+        api.get("/water-history")
       ]);
 
-      setWaterLevel(waterRes?.data?.level ?? 0);
-      setAlerts(alertsRes?.data ?? []);
-      setRegions(regionsRes?.data?.count ?? 0);
-      setHistory(historyRes?.data ?? []);
+      setData({
+        waterLevel: water.data.level,
+        alerts: alerts.data,
+        regions: regions.data.count,
+        history: history.data
+      });
+
       setError("");
 
     } catch (err) {
-      console.error(err);
       setError("Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
+  // 🔄 CARREGAMENTO INICIAL + AUTO UPDATE
   useEffect(() => {
-    let isMounted = true;
+    loadData();
 
-    const safeLoad = async () => {
-      if (!isMounted) return;
-      await loadData();
-    };
-
-    safeLoad();
-
-    const interval = setInterval(safeLoad, 10000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-
-  }, [loadData]);
+    const interval = setInterval(loadData, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="layout">
@@ -80,31 +67,42 @@ export default function Dashboard() {
 
         <Topbar />
 
-        {/* ERRO */}
-        {error && (
-          <div className="error-box">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-box">{error}</div>}
+
+        {/* BOTÃO */}
+        <div style={{ marginBottom: "20px" }}>
+          <button
+            onClick={() => setShowModal(true)}
+            style={{
+              padding: "10px 15px",
+              background: "#38bdf8",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer"
+            }}
+          >
+            + Novo Abrigo
+          </button>
+        </div>
 
         {/* CARDS */}
         <div className="cards">
 
-          <StatCard 
+          <StatCard
             label="Nível da Água"
-            value={loading ? "..." : `${waterLevel}m`}
+            value={loading ? "..." : `${data.waterLevel}m`}
             color="#0ea5e9"
           />
 
-          <StatCard 
-            label="Alertas Ativos"
-            value={loading ? "..." : alerts.length}
+          <StatCard
+            label="Alertas"
+            value={loading ? "..." : data.alerts.length}
             color="#ef4444"
           />
 
-          <StatCard 
-            label="Regiões Monitoradas"
-            value={loading ? "..." : regions}
+          <StatCard
+            label="Regiões"
+            value={loading ? "..." : data.regions}
             color="#22c55e"
           />
 
@@ -115,34 +113,27 @@ export default function Dashboard() {
 
           {/* GRÁFICO */}
           <div className="card">
-            <h3>📊 Nível da água</h3>
+            <h3>📊 Histórico do nível da água</h3>
 
             {loading ? (
               <p>Carregando gráfico...</p>
-            ) : history.length === 0 ? (
-              <p>Sem dados disponíveis</p>
             ) : (
-              <WaterChart data={history} />
+              <WaterChart data={data.history} />
             )}
-
           </div>
 
           {/* ALERTAS */}
           <div className="card">
-
             <h3>🚨 Alertas recentes</h3>
 
             {loading ? (
               <p>Carregando...</p>
-            ) : alerts.length === 0 ? (
-              <p className="safe">Nenhum alerta no momento</p>
+            ) : data.alerts.length === 0 ? (
+              <p style={{ color: "#64748b" }}>Nenhum alerta ativo</p>
             ) : (
-              alerts.map((a, i) => (
-                <div 
-                  key={i} 
-                  className={`alert-item ${getAlertLevel(a.message)}`}
-                >
-                  ⚠️ {a.message || "Alerta sem descrição"}
+              data.alerts.map((a, i) => (
+                <div key={i} className="alert-item">
+                  {a.message}
                 </div>
               ))
             )}
@@ -150,6 +141,14 @@ export default function Dashboard() {
           </div>
 
         </div>
+
+        {/* 🔥 MODAL (AGORA CORRETO) */}
+        {showModal && (
+          <CreateShelterModal
+            onClose={() => setShowModal(false)}
+            onSuccess={loadData} // 🔥 atualiza dashboard automático
+          />
+        )}
 
       </main>
     </div>
